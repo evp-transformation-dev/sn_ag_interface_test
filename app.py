@@ -17,7 +17,7 @@ if os.path.exists("logging.yaml"):
         config = yaml.safe_load(file)
         logging.config.dictConfig(config)
 else:
-    log_level = logging.getLevelNamesMapping()[(os.environ.get("LOG_LEVEL", "INFO"))]
+    log_level = getattr(logging, os.environ.get("LOG_LEVEL", "INFO").upper())
     logging.basicConfig(level=log_level)
 
 logger = logging.getLogger(__name__)
@@ -107,25 +107,25 @@ if prompt := st.chat_input():
                             citation_num = citation_nums[i]
                         if citation_num not in citation_locs.keys():
                             citation_marker = f"[{citation_num}]"
-                            match retrieved_ref['location']['type']:
-                                case 'CONFLUENCE':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['confluenceLocation']['url']}"
-                                case 'CUSTOM':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['customDocumentLocation']['id']}"
-                                case 'KENDRA':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['kendraDocumentLocation']['uri']}"
-                                case 'S3':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['s3Location']['uri']}"
-                                case 'SALESFORCE':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['salesforceLocation']['url']}"
-                                case 'SHAREPOINT':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['sharePointLocation']['url']}"
-                                case 'SQL':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['sqlLocation']['query']}"
-                                case 'WEB':
-                                    citation_locs[citation_num] = f"{retrieved_ref['location']['webLocation']['url']}"
-                                case _:
-                                    logger.warning(f"Unknown location type: {retrieved_ref['location']['type']}")
+                            location_type = retrieved_ref['location']['type']
+                            if location_type == 'CONFLUENCE':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['confluenceLocation']['url']}"
+                            elif location_type == 'CUSTOM':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['customDocumentLocation']['id']}"
+                            elif location_type == 'KENDRA':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['kendraDocumentLocation']['uri']}"
+                            elif location_type == 'S3':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['s3Location']['uri']}"
+                            elif location_type == 'SALESFORCE':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['salesforceLocation']['url']}"
+                            elif location_type == 'SHAREPOINT':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['sharePointLocation']['url']}"
+                            elif location_type == 'SQL':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['sqlLocation']['query']}"
+                            elif location_type == 'WEB':
+                                citation_locs[citation_num] = f"{retrieved_ref['location']['webLocation']['url']}"
+                            else:
+                                logger.warning(f"Unknown location type: {retrieved_ref['location']['type']}")
                         i += 1
                 citation_locs = dict(sorted(citation_locs.items(), key=lambda item: int(item[0])))
                 st.session_state.citation_nums = citation_nums
